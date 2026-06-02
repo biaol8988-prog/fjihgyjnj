@@ -1,0 +1,43 @@
+{
+  "world_name": "AI Myth Universe",
+  "version": "0.1",
+  "description": "A structured mythological AI-generated universe system.",
+  "regions": [
+    {
+      "name": "North Ice Plains",
+      "type": "frozen_wasteland"
+    },
+    {
+      "name": "Dragon Abyss Sea",
+      "type": "ocean_depth"
+    },
+    {
+      "name": "Eternal Night City",
+      "type": "ruins_metropolis"
+    }
+  ],
+  "factions": [
+    {
+      "name": "Order of Time",
+      "role": "temporal_control"
+    },
+    {
+      "name": "Dream Weavers",
+      "role": "mind_and_dream_domain"
+    }
+  ],
+  "primordial_entities": [
+    {
+      "name": "Void Dragon",
+      "class": "apex_entity"
+    },
+    {
+      "name": "Celestial Fox",
+      "class": "information_entity"
+    },
+    {
+      "name": "Abyss Whale",
+      "class": "ecosystem_entity"
+    }
+  ]
+}
