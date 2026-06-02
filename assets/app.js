@@ -1,14 +1,17 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('AI Myth Universe loaded (dynamic mode + i18n + detail system + search)');
+  console.log('AI Myth Universe loaded (dynamic mode + i18n + detail system + search + map)');
 
   const grid = document.getElementById('grid');
+  const mapView = document.getElementById('mapView');
   const langBtn = document.getElementById('langToggle');
+  const mapBtn = document.getElementById('mapToggle');
   const subtitle = document.getElementById('subtitle');
   const footerText = document.getElementById('footerText');
   const searchBox = document.getElementById('searchBox');
 
   let lang = 'en';
   let worldData = null;
+  let viewMode = 'world';
 
   // ===== i18n =====
   const i18n = {
@@ -19,6 +22,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       faction: 'Faction',
       entity: 'Entity',
       searchPlaceholder: 'Search entities...',
+      map: 'Map',
+      world: 'World',
       failed: 'Failed to load world data'
     },
     zh: {
@@ -28,6 +33,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       faction: '势力',
       entity: '存在体',
       searchPlaceholder: '搜索神话实体...',
+      map: '地图',
+      world: '世界',
       failed: '世界数据加载失败'
     }
   };
@@ -92,30 +99,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     return card;
   }
 
-  // ===== render =====
-  function renderWorld(data, filter = '') {
+  // ===== render world =====
+  function renderWorld(data) {
     grid.innerHTML = '';
 
-    const q = filter.trim().toLowerCase();
-
-    const filterFn = (item) => {
-      if (!q) return true;
-      return (item.name || '').toLowerCase().includes(q);
-    };
-
-    data.regions.filter(filterFn).forEach(r => {
-      grid.appendChild(createCard(r, 'Region'));
-    });
-
-    data.factions.filter(filterFn).forEach(f => {
-      grid.appendChild(createCard(f, 'Faction'));
-    });
-
-    data.primordial_entities.filter(filterFn).forEach(e => {
-      grid.appendChild(createCard(e, 'Entity'));
-    });
+    data.regions.forEach(r => grid.appendChild(createCard(r, 'Region')));
+    data.factions.forEach(f => grid.appendChild(createCard(f, 'Faction')));
+    data.primordial_entities.forEach(e => grid.appendChild(createCard(e, 'Entity')));
 
     worldData = data;
+  }
+
+  // ===== render map =====
+  function renderMap(data) {
+    mapView.innerHTML = '';
+
+    data.regions.forEach(r => {
+      const node = document.createElement('div');
+      node.className = 'card';
+      node.innerHTML = `<h2>${r.name}</h2><p>${r.type}</p><small>${i18n[lang].map}</small>`;
+      node.addEventListener('click', () => openModal(r, i18n[lang].region));
+      mapView.appendChild(node);
+    });
+  }
+
+  function switchView(mode) {
+    viewMode = mode;
+
+    if (mode === 'world') {
+      grid.style.display = 'grid';
+      mapView.style.display = 'none';
+    } else {
+      grid.style.display = 'none';
+      mapView.style.display = 'grid';
+      if (worldData) renderMap(worldData);
+    }
   }
 
   // ===== language =====
@@ -124,7 +142,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     footerText.textContent = i18n[lang].footer;
     searchBox.placeholder = i18n[lang].searchPlaceholder;
 
-    if (worldData) renderWorld(worldData, searchBox.value);
+    if (worldData) {
+      renderWorld(worldData);
+      if (viewMode === 'map') renderMap(worldData);
+    }
   }
 
   langBtn.addEventListener('click', () => {
@@ -132,9 +153,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyLang();
   });
 
+  mapBtn.addEventListener('click', () => {
+    switchView(viewMode === 'world' ? 'map' : 'world');
+  });
+
   searchBox.addEventListener('input', () => {
     if (!worldData) return;
-    renderWorld(worldData, searchBox.value);
+
+    const q = searchBox.value.trim().toLowerCase();
+    const filter = (arr) => arr.filter(i => (i.name || '').toLowerCase().includes(q));
+
+    if (viewMode === 'world') {
+      grid.innerHTML = '';
+      filter(worldData.regions).forEach(r => grid.appendChild(createCard(r, 'Region')));
+      filter(worldData.factions).forEach(f => grid.appendChild(createCard(f, 'Faction')));
+      filter(worldData.primordial_entities).forEach(e => grid.appendChild(createCard(e, 'Entity')));
+    } else {
+      renderMap({ regions: filter(worldData.regions) });
+    }
   });
 
   // ===== init =====
