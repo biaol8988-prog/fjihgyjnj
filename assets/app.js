@@ -1,10 +1,11 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('AI Myth Universe loaded (dynamic mode + i18n + detail system)');
+  console.log('AI Myth Universe loaded (dynamic mode + i18n + detail system + search)');
 
   const grid = document.getElementById('grid');
   const langBtn = document.getElementById('langToggle');
   const subtitle = document.getElementById('subtitle');
   const footerText = document.getElementById('footerText');
+  const searchBox = document.getElementById('searchBox');
 
   let lang = 'en';
   let worldData = null;
@@ -92,18 +93,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ===== render =====
-  function renderWorld(data) {
+  function renderWorld(data, filter = '') {
     grid.innerHTML = '';
 
-    data.regions.forEach(r => {
+    const q = filter.trim().toLowerCase();
+
+    const filterFn = (item) => {
+      if (!q) return true;
+      return (item.name || '').toLowerCase().includes(q);
+    };
+
+    data.regions.filter(filterFn).forEach(r => {
       grid.appendChild(createCard(r, 'Region'));
     });
 
-    data.factions.forEach(f => {
+    data.factions.filter(filterFn).forEach(f => {
       grid.appendChild(createCard(f, 'Faction'));
     });
 
-    data.primordial_entities.forEach(e => {
+    data.primordial_entities.filter(filterFn).forEach(e => {
       grid.appendChild(createCard(e, 'Entity'));
     });
 
@@ -114,13 +122,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   function applyLang() {
     subtitle.textContent = i18n[lang].subtitle;
     footerText.textContent = i18n[lang].footer;
+    searchBox.placeholder = i18n[lang].searchPlaceholder;
 
-    if (worldData) renderWorld(worldData);
+    if (worldData) renderWorld(worldData, searchBox.value);
   }
 
   langBtn.addEventListener('click', () => {
     lang = lang === 'en' ? 'zh' : 'en';
     applyLang();
+  });
+
+  searchBox.addEventListener('input', () => {
+    if (!worldData) return;
+    renderWorld(worldData, searchBox.value);
   });
 
   // ===== init =====
